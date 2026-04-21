@@ -1,6 +1,0 @@
-﻿namespace CleanArq.Infra.IoC;
-
-public class Class1
-{
-
-}
