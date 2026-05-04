@@ -2,6 +2,7 @@
   <Project Path="CleanArq.Api/CleanArq.Api.csproj" />
   <Project Path="CleanArq.Application/CleanArq.Application.csproj" />
   <Project Path="CleanArq.Domain/CleanArq.Domain.csproj" />
+  <Project Path="CleanArq.Domain.Tests/CleanArq.Domain.Tests.csproj" />
   <Project Path="CleanArq.Infra.Data/CleanArq.Infra.Data.csproj" />
   <Project Path="CleanArq.Infra.IoC/CleanArq.Infra.IoC.csproj" />
 </Solution>
