@@ -32,12 +32,11 @@ public sealed class ProductValidator : AbstractValidator<Product>
             .WithMessage("Stock cannot be negative");
 
         RuleFor(p => p.ImageUrl)
-            .NotEmpty()
-            .WithMessage("Image URL is required")
+            .MaximumLength(220)
+            .WithMessage("Image URL must have a maximum of 220 characters")
             .Must(BeValidUrl)
             .WithMessage("Image URL must be valid")
-            .MaximumLength(220)
-            .WithMessage("Image URL must have a maximum of 220 characters");
+            .When(p => !string.IsNullOrWhiteSpace(p.ImageUrl));
 
         RuleFor(p => p.CategoryId)
             .GreaterThan(0)

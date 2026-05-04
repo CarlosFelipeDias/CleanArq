@@ -73,6 +73,22 @@ public sealed class ProductTests
     }
 
     [Fact]
+    public void Create_ShouldSucceed_WhenImageUrlIsEmpty()
+    {
+        var result = Product.Create(
+            name: "Notebook",
+            description: "Powerful notebook for development",
+            price: 3500m,
+            stock: 5,
+            imageUrl: string.Empty,
+            categoryId: 1);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().NotBeNull();
+        result.Value!.ImageUrl.Should().BeEmpty();
+    }
+
+    [Fact]
     public void Create_ShouldFail_WhenCategoryIdIsInvalid()
     {
         var result = Product.Create(
