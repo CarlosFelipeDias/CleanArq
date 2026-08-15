@@ -48,7 +48,7 @@ public sealed class Product : Entity
         Description = description;
         Price = price;
         Stock = stock;
-        ImageUrl = imageUrl;
+        ImageUrl = imageUrl;        
         CategoryId = categoryId;
     }
 
