@@ -12,7 +12,7 @@ namespace CleanArq.Application
     {
         public DomainToDTOMappingProfile()
         {
-            CreateMap<Product, ProductDTO>().ReverseMap();
+            CreateMap<Product, ProductDTO>();
             CreateMap<Category, CategoryDTO>().ReverseMap();
         }
     }

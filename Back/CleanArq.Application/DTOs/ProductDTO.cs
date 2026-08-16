@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
-using CleanArq.Domain.Entities;
 
 namespace CleanArq.Application.DTOs
 {
@@ -41,7 +40,7 @@ namespace CleanArq.Application.DTOs
         public string ImageUrl { get; set; } = string.Empty;
 
         [Display(Name = "Category")]
-        public Category Category{ get; set; } 
+        public CategoryDTO? Category { get; set; }
         public int CategoryId { get; set; }
     }
 }

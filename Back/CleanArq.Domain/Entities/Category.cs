@@ -77,12 +77,12 @@ public sealed class Category : Entity
     }
 
     /// <summary>
-    /// Updates the category name with validation
+    /// Updates the category data with validation
     /// </summary>
-    public Result UpdateName(string newName)
+    public Result Update(string name)
     {
         var validator = new CategoryValidator();
-        var tempCategory = new Category(Id, newName);
+        var tempCategory = new Category(Id, name);
 
         var validationResult = validator.Validate(tempCategory);
 
@@ -95,7 +95,7 @@ public sealed class Category : Entity
             return Result.Failure(errors);
         }
 
-        Name = newName;
+        Name = name;
         return Result.Success();
     }
 }

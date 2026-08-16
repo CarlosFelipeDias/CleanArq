@@ -29,26 +29,26 @@ public sealed class CategoryTests
     }
 
     [Fact]
-    public void UpdateName_ShouldFail_WhenNameIsWhitespace()
+    public void Update_ShouldFail_WhenNameIsWhitespace()
     {
         var categoryResult = Category.Create("Electronics");
         categoryResult.IsSuccess.Should().BeTrue();
 
         var category = categoryResult.Value!;
-        var result = category.UpdateName("   ");
+        var result = category.Update("   ");
 
         result.IsFailure.Should().BeTrue();
         result.Errors.Should().Contain(error => error.PropertyName == nameof(Category.Name));
     }
 
     [Fact]
-    public void UpdateName_ShouldSucceed_WhenNameIsValid()
+    public void Update_ShouldSucceed_WhenNameIsValid()
     {
         var categoryResult = Category.Create("Electronics");
         categoryResult.IsSuccess.Should().BeTrue();
 
         var category = categoryResult.Value!;
-        var result = category.UpdateName("Computers");
+        var result = category.Update("Computers");
 
         result.IsSuccess.Should().BeTrue();
         category.Name.Should().Be("Computers");
