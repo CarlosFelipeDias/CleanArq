@@ -1,33 +1,35 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using CleanArq.Application.DTOs;
 using CleanArq.Application.Interfaces;
+using CleanArq.Application.Products.Commands;
+using CleanArq.Application.Products.Queries;
 using CleanArq.Domain.Common;
-using CleanArq.Domain.Entities;
-using CleanArq.Domain.Interfaces;
+using MediatR;
 
 namespace CleanArq.Application.Services
 {
     public class ProductService : IProductService
     {
-        private readonly IProductRepository _productRepository;
+        
         private readonly IMapper _mapper;
+        private readonly IMediator _mediator;
 
-        public ProductService(IMapper mapper, IProductRepository productRepository)
+        public ProductService(IMapper mapper, IMediator mediator)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
         public async Task<IEnumerable<ProductDTO>> GetProductsAsync()
         {
-            var productEntities = await _productRepository.GetProductsAsync();
-            var productDtos = _mapper.Map<IEnumerable<ProductDTO>>(productEntities);    
-            return productDtos;
+            var result = await _mediator.Send(new GetProductsQuery());
 
+            if (result.IsFailure || result.Value is null)
+            {
+                return Enumerable.Empty<ProductDTO>();
+            }
+
+            return _mapper.Map<IEnumerable<ProductDTO>>(result.Value);
         }
 
         public async Task<ProductDTO?> GetProductByIdAsync(int? id)
@@ -37,13 +39,14 @@ namespace CleanArq.Application.Services
                 return null;
             }
 
-            var productEntity = await _productRepository.GetProductByIdAsync(id.Value);
-            if (productEntity is null)
+            var result = await _mediator.Send(new GetProductByIdQuery(id.Value));
+
+            if (result.IsFailure || result.Value is null)
             {
                 return null;
             }
-            var productDto = _mapper.Map<ProductDTO>(productEntity);
-            return productDto;
+
+            return _mapper.Map<ProductDTO>(result.Value);
 
         }
 
@@ -54,13 +57,14 @@ namespace CleanArq.Application.Services
                 return null;
             }
 
-            var productEntity = await _productRepository.GetProductWithCategoryByIdAsync(id.Value);
-            if (productEntity is null)  
+            var result = await _mediator.Send(new GetProductWithCategoryByIdQuery(id.Value));
+
+            if (result.IsFailure || result.Value is null)
             {
                 return null;
             }
-            var productDto = _mapper.Map<ProductDTO>(productEntity);
-            return productDto;
+
+            return _mapper.Map<ProductDTO>(result.Value);
 
         }
 
@@ -71,20 +75,13 @@ namespace CleanArq.Application.Services
                 return Result.Failure<ProductDTO>(new Notification(nameof(productDto), "Product data is required."));
             }
 
-            var productResult = Product.Create(
-                productDto.Name,
-                productDto.Description,
-                productDto.Price,
-                productDto.Stock,
-                productDto.ImageUrl,
-                productDto.CategoryId);
+            var command = _mapper.Map<ProductCreateCommand>(productDto);
+            var productResult = await _mediator.Send(command);
 
             if (productResult.IsFailure || productResult.Value is null)
             {
                 return Result.Failure<ProductDTO>(productResult.Errors);
             }
-
-            await _productRepository.AddProductAsync(productResult.Value);
 
             var createdProductDto = _mapper.Map<ProductDTO>(productResult.Value);
             return Result.Success(createdProductDto);
@@ -97,27 +94,14 @@ namespace CleanArq.Application.Services
                 return Result.Failure(new Notification(nameof(productDto), "Product data is required."));
             }
 
-            var productEntity = await _productRepository.GetProductByIdAsync(productDto.Id);
-
-            if (productEntity is null)
-            {
-                return Result.Failure(new Notification(nameof(productDto.Id), "Product not found."));
-            }
-
-            var updateResult = productEntity.Update(
-                productDto.Name,
-                productDto.Description,
-                productDto.Price,
-                productDto.Stock,
-                productDto.ImageUrl,
-                productDto.CategoryId);
+            var command = _mapper.Map<PruductUpdateCommand>(productDto);
+            var updateResult = await _mediator.Send(command);
 
             if (updateResult.IsFailure)
             {
-                return updateResult;
+                return Result.Failure(updateResult.Errors);
             }
 
-            await _productRepository.UpdateProductAsync(productEntity);
             return Result.Success();
 
         }
@@ -129,13 +113,13 @@ namespace CleanArq.Application.Services
                 return Result.Failure(new Notification(nameof(id), "Product id is required."));
             }
 
-            var productEntity = await _productRepository.GetProductByIdAsync(id.Value);
-            if (productEntity is null)  
+            var removeResult = await _mediator.Send(new ProductRemoveCommand(id.Value));
+
+            if (removeResult.IsFailure)
             {
-                return Result.Failure(new Notification(nameof(id), "Product not found."));
+                return Result.Failure(removeResult.Errors);
             }
 
-            await _productRepository.DeleteProductAsync(id.Value);
             return Result.Success();
                 
         }

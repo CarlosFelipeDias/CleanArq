@@ -2,9 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CleanArq.Application;
+using CleanArq.Application.Interfaces;
+using CleanArq.Application.Services;
 using CleanArq.Domain.Interfaces;
 using CleanArq.Infra.Data.Context;
 using CleanArq.Infra.Data.Repositories;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,6 +35,13 @@ namespace CleanArq.Infra.IoC
 
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<ICategoryService, CategoryService>();
+            services.AddAutoMapper(_ => { }, typeof(DomainToDTOMappingProfile).Assembly);
+
+            var assemblyHandlers = AppDomain.CurrentDomain.Load("CleanArq.Application");
+            services.AddMediatR(configuration =>
+                configuration.RegisterServicesFromAssembly(assemblyHandlers));
 
             return services;
         }
