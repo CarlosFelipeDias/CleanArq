@@ -38,5 +38,67 @@ namespace CleanArq.Api.Controllers
 
             return Ok(product);
         }
+
+        [HttpPost]
+        [ProducesResponseType(typeof(ProductDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ProductDTO>> Post([FromBody] ProductDTO productDto)
+        {
+            var result = await _productService.AddProductAsync(productDto);
+
+            if (result.IsFailure)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            return CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, result.Value);
+        }
+
+        [HttpPut("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Put(int id, [FromBody] ProductDTO productDto)
+        {
+            if (productDto is null)
+            {
+                return BadRequest(new { message = "Product data is required." });
+            }
+
+            if (id != productDto.Id)
+            {
+                return BadRequest(new { message = "The route id must match the product id." });
+            }
+
+            var result = await _productService.UpdateProductAsync(productDto);
+
+            if (result.IsFailure)
+            {
+                if (result.Errors.Any(error => error.PropertyName == nameof(ProductDTO.Id)
+                    && error.Message == "Product not found."))
+                {
+                    return NotFound();
+                }
+
+                return BadRequest(result.Errors);
+            }
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var result = await _productService.DeleteProductAsync(id);
+
+            if (result.IsFailure)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+        }
     }
 }

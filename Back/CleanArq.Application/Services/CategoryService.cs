@@ -51,6 +51,13 @@ namespace CleanArq.Application.Services
                 return Result.Failure(new Notification(nameof(id), "Category id is required."));
             }
 
+            var category = await _categoryRepository.GetCategoryByIdAsync(id.Value);
+
+            if (category is null)
+            {
+                return Result.Failure(new Notification(nameof(id), "Category not found."));
+            }
+
             await _categoryRepository.DeleteCategoryAsync(id.Value);
             return Result.Success();
         }
