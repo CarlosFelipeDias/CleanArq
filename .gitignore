@@ -35,3 +35,7 @@ packages/
 # OS files
 Thumbs.db
 Desktop.ini
+
+# Frontend
+node_modules/
+dist/
