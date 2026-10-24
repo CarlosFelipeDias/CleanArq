@@ -39,3 +39,6 @@ Desktop.ini
 # Frontend
 node_modules/
 dist/
+
+# Isolated verification output
+.artifacts/

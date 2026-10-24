@@ -1,12 +1,17 @@
-import { accessToken, keycloak } from './auth';
+import { csrfToken, expireSession } from './auth';
 import axios from 'axios';
 export interface Category { id: number; name: string }
 export interface Product { id: number; name: string; description: string; price: number; stock: number; imageUrl: string; categoryId: number; category?: Category }
 export type Resource = 'Products' | 'Categories';
-export const api = axios.create({ baseURL: import.meta.env.VITE_API_BASE_URL || '/api', timeout: 15000 });
-api.interceptors.request.use(async config => { config.headers.Authorization = `Bearer ${await accessToken()}`; return config; });
+const baseURL = import.meta.env.VITE_API_BASE_URL || '/api';
+if (!baseURL.startsWith('/') || baseURL.startsWith('//')) throw new Error('The BFF API must use a same-origin relative URL.');
+export const api = axios.create({ baseURL, timeout: 15000 });
+api.interceptors.request.use(async config => {
+  if (!['get', 'head', 'options'].includes(config.method?.toLowerCase() || 'get')) config.headers['X-CSRF-TOKEN'] = await csrfToken();
+  return config;
+});
 api.interceptors.response.use(response => response, error => {
-  if (error.response?.status === 401) { keycloak.clearToken(); window.dispatchEvent(new Event('cleanarq-session-expired')); }
+  if (error.response?.status === 401) { expireSession(); }
   return Promise.reject(error);
 });
 export async function list<T>(resource: Resource, signal?: AbortSignal): Promise<T[]> {
@@ -28,5 +33,3 @@ export function errorMessage(error: unknown): string {
   if (error.response.status === 500) return 'The server could not complete the request. Check that the API and database are available.';
   return typeof data === 'string' && data.length < 300 ? data : data?.message || data?.title || 'The request failed. Please try again.';
 }
-
-

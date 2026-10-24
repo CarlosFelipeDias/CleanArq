@@ -4,6 +4,5 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return { plugins: [react(), tailwindcss()], resolve: { preserveSymlinks: true }, server: { port: 5173, strictPort: true,
-    proxy: { '/api': { target: env.API_PROXY_TARGET || 'http://localhost:5012', changeOrigin: true } } } };
+    proxy: Object.fromEntries(['/api', '/bff', '/signin-oidc', '/signout-callback-oidc', '/swagger', '/openapi'].map(prefix => [prefix, { target: env.API_PROXY_TARGET || 'http://localhost:5012', changeOrigin: true }])) } };
 });
-

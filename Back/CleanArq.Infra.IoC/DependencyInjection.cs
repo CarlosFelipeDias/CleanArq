@@ -1,3 +1,5 @@
+using CleanArq.Application.Users;
+using CleanArq.Infra.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +20,7 @@ namespace CleanArq.Infra.IoC
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, bool allowIdentityHttpForDevelopment = false)
         {
             var connectionString = configuration.GetConnectionString("DockerConnection_Dev")
                 ?? throw new InvalidOperationException("Connection string 'DockerConnection_Dev' was not configured.");
@@ -42,6 +44,14 @@ namespace CleanArq.Infra.IoC
             var assemblyHandlers = AppDomain.CurrentDomain.Load("CleanArq.Application");
             services.AddMediatR(configuration =>
                 configuration.RegisterServicesFromAssembly(assemblyHandlers));
+
+            services.AddOptions<KeycloakProvisioningOptions>()
+                .Bind(configuration.GetSection(KeycloakProvisioningOptions.SectionName))
+                .PostConfigure(options =>
+                    options.AllowHttpForDevelopment = options.AllowHttpForDevelopment && allowIdentityHttpForDevelopment);
+            services.AddHttpClient<IUserProvisioner, KeycloakUserProvisioner>(client => client.Timeout = TimeSpan.FromSeconds(15))
+                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+            services.AddScoped<CreateUserHandler>();
 
             return services;
         }

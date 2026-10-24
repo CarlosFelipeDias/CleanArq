@@ -1,9 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\CleanArq.Domain\CleanArq.Domain.csproj" />
     <ProjectReference Include="..\CleanArq.Application\CleanArq.Application.csproj" />
     <ProjectReference Include="..\CleanArq.Infra.Data\CleanArq.Infra.Data.csproj" />
+    <ProjectReference Include="..\CleanArq.Infra.Identity\CleanArq.Infra.Identity.csproj" />
   </ItemGroup>
 
   <ItemGroup>

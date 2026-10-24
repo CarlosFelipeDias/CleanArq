@@ -1,8 +1,10 @@
 <Solution>
   <Project Path="CleanArq.Api/CleanArq.Api.csproj" />
+  <Project Path="CleanArq.Api.Tests/CleanArq.Api.Tests.csproj" />
   <Project Path="CleanArq.Application/CleanArq.Application.csproj" />
   <Project Path="CleanArq.Domain/CleanArq.Domain.csproj" />
   <Project Path="CleanArq.Domain.Tests/CleanArq.Domain.Tests.csproj" />
   <Project Path="CleanArq.Infra.Data/CleanArq.Infra.Data.csproj" />
   <Project Path="CleanArq.Infra.IoC/CleanArq.Infra.IoC.csproj" />
+  <Project Path="CleanArq.Infra.Identity/CleanArq.Infra.Identity.csproj" />
 </Solution>
