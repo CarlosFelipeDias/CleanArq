@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
+using CleanArq.Api.Security;
 using CleanArq.Application.DTOs;
 using CleanArq.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CleanArq.Api.Controllers
 {
+    [Authorize(Policy = KeycloakAuthentication.CatalogPolicy)]
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]

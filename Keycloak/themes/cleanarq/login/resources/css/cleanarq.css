@@ -1,0 +1,19 @@
+/* Inherit Keycloak's forms and validation; change presentation only. */
+:root { color-scheme: light; }
+.login-pf body {background:#f7f8f5;font-family:Inter,Segoe UI,Arial,sans-serif;color:#263b34;}
+.login-pf-page {min-height:100vh;padding:0;display:grid;grid-template-columns:1fr 1fr;align-items:center;}
+#kc-header {height:100vh;background:#19352c;color:#e9eee2;margin:0;padding:60px;display:flex;align-items:center;}
+#kc-header-wrapper {padding:0;text-align:left;text-transform:none;letter-spacing:-1px;font-size:42px;font-weight:700;}
+#kc-header-wrapper:before {content:'C  CleanArq.';display:block;color:#c8dfaa;font-size:26px;letter-spacing:-1px;margin-bottom:70px;}
+#kc-header-wrapper:after {content:'Good products. Great organization.';display:block;font:48px/1.2 Georgia,serif;color:#e9eee2;max-width:430px;margin-top:24px;}
+.login-pf-page .card-pf {width:calc(100% - 64px);max-width:440px;margin:40px auto;padding:35px;background:#fff;border:1px solid #e0e5dc;border-radius:14px;box-shadow:0 12px 40px #19352c08;}
+#kc-page-title {font-weight:600;font-size:27px;letter-spacing:-.7px;color:#263b34;}
+.pf-c-form-control {border:1px solid #d8dfd9;border-radius:7px;min-height:44px;padding:10px 12px;background:#fff;}
+.pf-c-form-control:focus {border-color:#547b5b;box-shadow:0 0 0 2px #c8dfaa;}
+.pf-c-button.pf-m-primary,.btn-primary {background:#19352c;border:0;border-radius:7px;min-height:45px;font-size:14px;font-weight:600;box-shadow:none;}
+.pf-c-button.pf-m-primary:hover,.btn-primary:hover {background:#2c5140;}
+#kc-form-buttons {margin-top:26px;}
+#kc-info-wrapper {background:#edf1e5;border-radius:8px;color:#52634b;}
+a {color:#3c6747;}
+#kc-locale {display:none;}
+@media(max-width:760px){.login-pf-page{display:block}#kc-header{height:auto;padding:28px}#kc-header-wrapper{font-size:20px}#kc-header-wrapper:before{margin:0;font-size:24px}#kc-header-wrapper:after{display:none}.login-pf-page .card-pf{margin:32px auto;width:calc(100% - 32px)}}

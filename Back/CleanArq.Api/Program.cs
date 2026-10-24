@@ -1,34 +1,26 @@
 using CleanArq.Infra.IoC;
-var builder = WebApplication.CreateBuilder(args);
+using CleanArq.Api.Security;
 
+var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
-
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
-
 builder.Services.AddInfrastructure(builder.Configuration);
-
+builder.Services.AddKeycloakAuthentication(builder.Configuration, builder.Environment);
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.MapOpenApi().AllowAnonymous();
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.MapGet("/", () => Results.Redirect("/swagger"));
+    app.MapGet("/", () => Results.Redirect("/swagger")).AllowAnonymous();
 }
-
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
+public partial class Program { }

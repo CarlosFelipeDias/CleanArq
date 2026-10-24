@@ -2,9 +2,9 @@
 
 React, TypeScript, Tailwind CSS and Axios inventory workspace. All interface text is in English.
 
-## Run locally
+## Development
 
-Start the API in a separate terminal:
+Run the API in a separate terminal:
 
     dotnet run --project Back/CleanArq.Api --launch-profile http
 
@@ -13,20 +13,20 @@ In Front:
     npm install
     npm run dev
 
-Open http://127.0.0.1:5173/. The development proxy forwards /api to http://localhost:5012. Copy .env.example to .env to override configuration. MySQL and the API must be running.
+Open http://127.0.0.1:5173/. Sign in uses the CleanArq realm through Keycloak. The former simulated login has been removed. Existing admin and user roles can access the catalog.
 
-## Simulated authentication
+Copy .env.example to .env to override the public configuration. No client secret belongs in the frontend. Axios attaches a refreshed access token; tokens are not persisted in browser storage by application code.
 
-Enter any nonempty username and password in development. No credentials are stored or transmitted, and the session lives only in memory. Do not use real passwords. VITE_ENABLE_DEMO_LOGIN=false disables demo entry. Production builds do not permit simulated sign-in. Keycloak integration is deferred to the next stage.
+The Vite development proxy forwards /api to http://localhost:5012. Production hosting must provide an equivalent reverse proxy or explicitly configured backend CORS. Production also requires HTTPS Keycloak and frontend addresses registered in the realm.
 
-## Catalog
-
-Products and categories consume the real API, with create, read, update and delete operations, category selection, search, validation, loading and error states, duplicate-submit prevention, and deletion confirmation. Frontend limits follow the intersection of DTO and domain rules. Backend validation remains authoritative. The existing categories endpoint's exact empty-list 404 is treated as an empty catalog.
-
-## Build and verification
+## Build
 
     npm run build
 
-TypeScript checking and production build passed. Product and category create, edit and delete flows were verified against the real API and database. Temporary test records were removed.
+The Vite runner uses a temporary free drive alias on Windows to work around # in the C# folder name, preserving the actual project location. It removes its alias on normal process exit.
 
-On Windows the Vite runner creates a temporary unused drive alias to work around # in the C# folder name, without moving the project. It removes the alias on normal exit.
+## API contracts
+
+Forms follow the intersection of existing DTO and domain validation limits: name 3–100 characters, product description 10–255, positive price, stock 1–10000 and optional image URL up to 220 characters. Backend validation remains authoritative. Categories returning the exact empty-list 404 are displayed as an empty catalog; other failures remain visible.
+
+See ../Keycloak/README.md for authentication configuration, request flow, theme installation and test instructions.
