@@ -27,6 +27,27 @@ namespace CleanArq.Api.Tests;
 public class AuthenticationTests
 {
     [Theory]
+    [InlineData("https://frontend.test")]
+    [InlineData("https://backend.test")]
+    [InlineData("http://localhost:5012")]
+    public async Task LoginAndLogoutUseTheConfiguredPublicOrigin(string publicOrigin)
+    {
+        await using var f = await Fixture.Create(publicOrigin: publicOrigin);
+        var options = f.App.Services.GetRequiredService<IOptionsMonitor<OpenIdConnectOptions>>().Get(KeycloakAuthentication.OidcScheme);
+        using var login = await f.Client.GetAsync("/bff/login");
+        Assert.Equal(HttpStatusCode.Redirect, login.StatusCode);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(login.Headers.Location!.Query);
+        Assert.Equal(publicOrigin + "/signin-oidc", query["redirect_uri"].ToString());
+        var properties = options.StateDataFormat.Unprotect(query["state"].ToString());
+        Assert.Equal(publicOrigin + "/", properties!.RedirectUri);
+
+        await f.SignIn("user"); await f.SetCsrf();
+        using var logout = await f.Client.PostAsync("/bff/logout", null);
+        Assert.Equal(HttpStatusCode.Redirect, logout.StatusCode);
+        var logoutQuery = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(logout.Headers.Location!.Query);
+        Assert.Equal(publicOrigin + "/signout-callback-oidc", logoutQuery["post_logout_redirect_uri"].ToString());
+    }
+    [Theory]
     [InlineData("admin", HttpStatusCode.OK)]
     [InlineData("user", HttpStatusCode.OK)]
     [InlineData("viewer", HttpStatusCode.Forbidden)]
@@ -124,7 +145,7 @@ public class AuthenticationTests
         public required HttpClient Client { get; init; }
         public int RefreshCalls;
         private readonly Dictionary<string, string> cookies = new();
-        public static async Task<Fixture> Create(string refreshRole = "user", bool refreshFails = false, string audience = "cleanarq-backend", bool refreshedExpired = false, bool wrongSignature = false)
+        public static async Task<Fixture> Create(string refreshRole = "user", bool refreshFails = false, string audience = "cleanarq-backend", bool refreshedExpired = false, bool wrongSignature = false, string publicOrigin = "https://frontend.test")
         {
             using var rsa = RSA.Create(2048); using var other = RSA.Create(2048);
             var key = new RsaSecurityKey(rsa) { KeyId = "test-key" };
@@ -134,8 +155,10 @@ public class AuthenticationTests
                 new SigningCredentials(wrongSignature ? new RsaSecurityKey(other) { KeyId = key.KeyId } : key, SecurityAlgorithms.RsaSha256));
             var accessToken = new JwtSecurityTokenHandler().WriteToken(jwt);
             var publicKey = new RsaSecurityKey(rsa.ExportParameters(false)) { KeyId = key.KeyId };
-            var builder = WebApplication.CreateBuilder(); builder.WebHost.UseTestServer();
-            builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["Keycloak:Authority"] = issuer, ["Keycloak:Audience"] = "cleanarq-backend", ["Keycloak:Bff:ClientSecret"] = "test-secret", ["Bff:PublicOrigin"] = "https://frontend.test" });
+            var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+            { EnvironmentName = publicOrigin.StartsWith("http://", StringComparison.Ordinal) ? "Development" : "Production" });
+            builder.WebHost.UseTestServer();
+            builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["Keycloak:Authority"] = issuer, ["Keycloak:Audience"] = "cleanarq-backend", ["Keycloak:Bff:ClientSecret"] = "test-secret", ["Bff:PublicOrigin"] = publicOrigin });
             builder.Services.AddKeycloakAuthentication(builder.Configuration, builder.Environment);
             builder.Services.PostConfigure<OpenIdConnectOptions>(KeycloakAuthentication.OidcScheme, options =>
             {
@@ -157,7 +180,7 @@ public class AuthenticationTests
                 properties.StoreTokens(new[] { new AuthenticationToken { Name = "access_token", Value = "server-only-access" }, new AuthenticationToken { Name = "refresh_token", Value = "server-only-refresh" }, new AuthenticationToken { Name = "id_token", Value = "server-only-id" }, new AuthenticationToken { Name = "expires_at", Value = DateTimeOffset.UtcNow.AddMinutes(context.Request.Query.ContainsKey("refresh") ? -1 : 5).ToString("o", CultureInfo.InvariantCulture) } });
                 await context.SignInAsync(KeycloakAuthentication.CookieScheme, new ClaimsPrincipal(new ClaimsIdentity(claims, "test", "preferred_username", ClaimTypes.Role)), properties);
             }).AllowAnonymous();
-            await app.StartAsync(); var client = app.GetTestClient(); client.BaseAddress = new Uri("https://frontend.test");
+            await app.StartAsync(); var client = app.GetTestClient(); client.BaseAddress = new Uri(publicOrigin);
             fixture = new Fixture { App = app, Client = client }; return fixture;
         }
         public async Task SignIn(string role, bool expired = false, bool refreshNeeded = false)

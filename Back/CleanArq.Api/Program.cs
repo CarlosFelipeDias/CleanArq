@@ -28,13 +28,18 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi().AllowAnonymous();
     app.UseSwagger();
-    app.UseSwaggerUI(options => options.UseRequestInterceptor(@"async (request) => {
-        if (!['GET','HEAD','OPTIONS'].includes(request.method.toUpperCase())) {
-            const response = await fetch('/bff/session', { credentials: 'same-origin', cache: 'no-store' });
-            const session = await response.json(); request.headers['X-CSRF-TOKEN'] = session.csrfToken;
-        }
-        request.credentials = 'same-origin'; return request;
-    }"));
+    // Swagger embeds this in a JavaScript string before JSON.parse: keep it on one line.
+    // Its function parser also requires a regular function, rather than async/await.
+    app.UseSwaggerUI(options => options.UseRequestInterceptor(
+        "function (request) { " +
+        "request.credentials = 'same-origin'; " +
+        "if (!['GET','HEAD','OPTIONS'].includes((request.method || 'GET').toUpperCase())) { " +
+        "return fetch('/bff/session', { credentials: 'same-origin', cache: 'no-store' }) " +
+        ".then(function (response) { " +
+        "if (!response.ok) throw new Error('Unable to load the session antiforgery token.'); " +
+        "return response.json(); }) " +
+        ".then(function (session) { request.headers['X-CSRF-TOKEN'] = session.csrfToken; return request; }); " +
+        "} return request; }"));
     app.MapGet("/", () => Results.Redirect("/swagger")).AllowAnonymous();
 }
 app.UseHttpsRedirection();

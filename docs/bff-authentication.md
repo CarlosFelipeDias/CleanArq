@@ -1,5 +1,7 @@
 # BFF authentication
 
+For installation, Keycloak settings and commands to run either mode locally, see the [main project README](../README.md#keycloak). This document provides additional authentication design details.
+
 ## Architecture
 
 The .NET API now also acts as an integrated Backend for Frontend. The browser calls this backend with a session cookie; it no longer receives OAuth access/refresh tokens or calls Keycloak's token endpoint. Domain/Application services remain the same. The user-provisioning service account remains independent.
@@ -39,6 +41,7 @@ Client cleanarq-backend becomes the confidential interactive login client: clien
 
 Exact local callback: http://127.0.0.1:5173/signin-oidc.
 Exact local post-logout callback: http://127.0.0.1:5173/signout-callback-oidc.
+For the API-only Development profile, also register the exact callbacks http://localhost:5012/signin-oidc and http://localhost:5012/signout-callback-oidc. Keep the frontend entries, PKCE S256 and all existing client authentication settings. No wildcard redirects or extra administrative permissions are needed.
 A dedicated Audience mapper includes cleanarq-backend in access-token aud (not ID-token aud). ID-token audience is validated separately by the OIDC handler against ClientId.
 
 The former public cleanarq-frontend client is no longer used by React. It may be disabled after successful verification, without deleting the client or changing users. The cleanarq-user-provisioning client and its manage-users role remain separate.
@@ -57,6 +60,8 @@ In separate terminals:
 Open http://127.0.0.1:5173/. Restart existing API/frontend processes to load the migration. The frontend no longer depends on keycloak-js. VITE_KEYCLOAK_* values are no longer used. Direct catalog API calls need a BFF session rather than a pasted JWT.
 
 ## Swagger
+
+To run without React, use `dotnet run --project Back/CleanArq.Api --launch-profile api-only`. This profile overrides only `Bff:PublicOrigin` to `http://localhost:5012` for that process. Navigate to http://localhost:5012/bff/login in the address bar; the themed Keycloak login returns to the API root and then Swagger. Use http://localhost:5012/swagger/index.html and check GET /bff/session before testing protected routes. The same session-cookie/CSRF rules apply; no Bearer token is needed. Use one profile at a time and restart with `--launch-profile http` to return to the React workflow. The Swagger UI does not replace browser navigation for OIDC login/logout.
 
 Open http://127.0.0.1:5173/swagger through the same origin after signing in. Swagger uses the browser session cookie and obtains X-CSRF-TOKEN from /bff/session for unsafe requests. The former Bearer Authorize configuration was removed. No token is shown or copied into Swagger. Swagger remains development-only.
 

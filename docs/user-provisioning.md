@@ -61,7 +61,7 @@ Missing credentials do not prevent catalog authentication from starting; only pr
 
 Tests cover actual endpoint authorization (admin accepted, user forbidden, missing token unauthorized), input validation, role injection rejection, disabled-first sequencing, assignment of user only, duplicate handling, missing/composite roles, failed assignment, creation ambiguity and activation reconciliation. The HTTP integration uses scripted responses so failure cases do not require changing the real realm.
 
-The user-creation frontend remains the next stage. Existing catalog pages, user passwords and user roles are not changed by this implementation.
+The frontend's Users section is visible only to administrators and submits this endpoint with the existing BFF session and antiforgery token. It confirms the temporary password, clears password fields after each request, and displays the account details on success. Partial failures and uncertain outcomes require a manual Keycloak review before starting another request. The screen creates ordinary users only; account listing, editing and deletion remain in Keycloak.
 
 After the BFF migration, use Swagger through http://127.0.0.1:5173/swagger after signing in with an admin account. It sends the session cookie and fetches antiforgery tokens for writes. Bearer tokens alone no longer authenticate the BFF API. See bff-authentication.md.
 

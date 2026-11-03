@@ -1,6 +1,8 @@
 @CleanArq.Api_HostAddress = http://localhost:5012
 
-GET {{CleanArq.Api_HostAddress}}/weatherforecast/
+# Authenticate through /bff/login in a browser. Swagger uses that browser's session.
+# This public endpoint can also be used to check API availability without credentials.
+GET {{CleanArq.Api_HostAddress}}/bff/session
 Accept: application/json
 
 ###
